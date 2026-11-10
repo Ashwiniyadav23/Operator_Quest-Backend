@@ -18,14 +18,23 @@ app.use("/api/progress", progressRoutes);
 app.use("/api/tutor", tutorRoutes);
 
 const PORT = process.env.PORT || 5001;
-try {
+export async function connectDatabase() {
   if (!process.env.MONGODB_URI) {
     throw new Error("MONGODB_URI is missing. Create server/.env from server/.env.example and set it.");
   }
+  if (mongoose.connection.readyState === 1) return;
   await mongoose.connect(process.env.MONGODB_URI);
   console.log("MongoDB connected");
-  app.listen(PORT, () => console.log(`API running at http://localhost:${PORT}`));
-} catch (error) {
-  console.error("Could not connect to MongoDB:", error.message);
-  process.exit(1);
 }
+
+if (!process.env.VERCEL) {
+  try {
+    await connectDatabase();
+    app.listen(PORT, () => console.log(`API running at http://localhost:${PORT}`));
+  } catch (error) {
+    console.error("Could not connect to MongoDB:", error.message);
+    process.exit(1);
+  }
+}
+
+export default app;
