@@ -45,9 +45,26 @@ function requestsQuizAnswer(question) {
 }
 
 function retrieveMaterials(question) {
-  const words = question.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean);
+  const normalized = question.toLowerCase();
+  const words = normalized.split(/[^a-z0-9]+/).filter(Boolean);
+  const hasSymbol = symbol => {
+    if (symbol.length > 1) return normalized.includes(symbol);
+    if (symbol === "=") return /(^|[^<>=!])=(?![=])/.test(normalized);
+    const escaped = symbol.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(^|[^a-z0-9])${escaped}(?![a-z0-9])`).test(normalized);
+  };
+  const symbolTopics = [
+    { id: "flowchart-logic-values", symbols: ["**=", "//=", "+=", "-=", "*=", "/=", "%=", "="] },
+    { id: "flowchart-comparisons", symbols: [">=", "<=", "==", "!=", ">", "<"] },
+    { id: "flowchart-arithmetic", symbols: ["+", "-", "*", "/", "%"] },
+    { id: "flowchart-branches", symbols: ["if/else"] }
+  ];
+  const symbolMatches = symbolTopics
+    .filter(topic => topic.symbols.some(hasSymbol))
+    .map(topic => topic.id);
+
   return LEARNING_MATERIALS.filter(material =>
-    material.keywords.some(keyword => words.includes(keyword))
+    symbolMatches.includes(material.id) || material.keywords.some(keyword => words.includes(keyword))
   ).slice(0, 3);
 }
 
@@ -79,6 +96,7 @@ export async function answerTutorQuestion(question, studentId) {
     response = await generateContentWithRetry(ai, {
       model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
       contents: `You are a safe, encouraging guide for students who are learning flowcharts and have not started coding. Answer the student's request with a clear, brief explanation of flowchart symbols, process blocks, decision diamonds, arrows, and everyday logic in plain language.
+Answer conceptual doubts directly, including questions like "What does this symbol mean?", "Why do we use it?", and "When would I use it in a flowchart?" Explain the symbol's purpose and give one simple everyday example that shows the flowchart action or path.
 Never provide the answer to an existing quiz or quest question. If the student asks for an existing quiz answer, refuse and offer to explain the relevant operator instead.
 Do not use programming languages, source code, code blocks, coding syntax, or assume the student knows programming. When explaining an operator, describe how it works in a flowchart process block or decision diamond.
 Student request: ${value}
