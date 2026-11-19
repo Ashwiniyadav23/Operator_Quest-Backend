@@ -1,25 +1,14 @@
 import { GoogleGenAI } from "@google/genai";
 import { LEARNING_MATERIALS } from "../config/learningMaterials.js";
-import { generateContentWithRetry } from "./geminiRequest.js";
+import { generateContentWithRetry, isTemporaryGeminiError } from "./geminiRequest.js";
 
 const MAX_INPUT_LENGTH = 1000;
 const responseSchema = {
   type: "OBJECT",
   properties: {
     explanation: { type: "STRING" },
-    questions: {
-      type: "ARRAY",
-      items: {
-        type: "OBJECT",
-        properties: {
-          question: { type: "STRING" },
-          answer: { type: "STRING" }
-        },
-        required: ["question", "answer"]
-      }
-    }
   },
-  required: ["explanation", "questions"]
+  required: ["explanation"]
 };
 
 const blockedPatterns = [
@@ -63,19 +52,10 @@ function retrieveMaterials(question) {
 }
 
 function validateOutput(value) {
-  if (!value || typeof value.explanation !== "string" || !value.explanation.trim() ||
-      !Array.isArray(value.questions) || value.questions.length !== 3 ||
-      value.questions.some(item => !item || typeof item.question !== "string" ||
-        typeof item.answer !== "string" || !item.question.trim() || !item.answer.trim())) {
+  if (!value || typeof value.explanation !== "string" || !value.explanation.trim()) {
     throw new Error("The AI returned an invalid tutor response.");
   }
-  return {
-    explanation: value.explanation.trim(),
-    questions: value.questions.map(item => ({
-      question: item.question.trim(),
-      answer: item.answer.trim()
-    }))
-  };
+  return { explanation: value.explanation.trim() };
 }
 
 function estimateCost(inputTokens, outputTokens) {
@@ -94,22 +74,37 @@ export async function answerTutorQuestion(question, studentId) {
   if (!process.env.GEMINI_API_KEY) throw new Error("Gemini API key is missing. Add GEMINI_API_KEY to server/.env.");
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: "v1beta" });
   const context = materials.map(material => `[${material.id}] ${material.content}`).join("\n");
-  const response = await generateContentWithRetry(ai, {
-    model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
-    contents: `You are a safe, encouraging guide for students who are learning flowcharts and have not started coding. Explain flowchart symbols, process blocks, decision diamonds, arrows, and everyday logic in plain language. Create exactly 3 new practice questions with answers, using only flowchart scenarios and everyday situations.
+  let response;
+  try {
+    response = await generateContentWithRetry(ai, {
+      model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
+      contents: `You are a safe, encouraging guide for students who are learning flowcharts and have not started coding. Answer the student's request with a clear, brief explanation of flowchart symbols, process blocks, decision diamonds, arrows, and everyday logic in plain language.
 Never provide the answer to an existing quiz or quest question. If the student asks for an existing quiz answer, refuse and offer to explain the relevant operator instead.
 Do not use programming languages, source code, code blocks, coding syntax, or assume the student knows programming. When explaining an operator, describe how it works in a flowchart process block or decision diamond.
 Student request: ${value}
 Relevant learning material (use it as factual support when relevant):
 ${context || "No matching material was found; explain only well-established flowchart concepts."}
 Return only JSON matching the response schema. Do not include unsafe instructions or secrets.`,
-    config: {
-      responseMimeType: "application/json",
-      responseJsonSchema: responseSchema,
-      thinkingConfig: { thinkingLevel: "minimal" },
-      temperature: 0.4
-    }
-  });
+      config: {
+        responseMimeType: "application/json",
+        responseJsonSchema: responseSchema,
+        thinkingConfig: { thinkingLevel: "minimal" },
+        temperature: 0.4
+      }
+    });
+  } catch (error) {
+    if (!isTemporaryGeminiError(error)) throw error;
+    const guide = materials.map(material => material.content).join(" ") ||
+      "A flowchart shows steps with shapes and arrows. A process block shows an action, and a decision diamond asks a Yes or No question that leads to different paths.";
+    return {
+      status: "fallback",
+      studentId,
+      request: value,
+      materials: materials.map(material => material.id),
+      response: { explanation: `The AI tutor is temporarily busy. Here is a quick guide: ${guide}` },
+      usage: { inputTokens: 0, outputTokens: 0, estimatedCostUsd: 0 }
+    };
+  }
   const inputTokens = response.usageMetadata?.promptTokenCount || 0;
   const outputTokens = response.usageMetadata?.candidatesTokenCount || 0;
   return {
