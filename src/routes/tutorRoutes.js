@@ -16,7 +16,8 @@ router.post("/ask", async (req, res) => {
       return res.status(400).json({ message: "I cannot give answers to quest questions. Ask me to explain the operator or concept instead." });
     }
     const result = await answerTutorQuestion(request, studentId);
-    res.json({ explanation: result.response.explanation, usage: result.usage });
+    // Keep the empty array for already-open clients built against the previous tutor response.
+    res.json({ explanation: result.response.explanation, questions: [], usage: result.usage });
   } catch (error) {
     console.error("Tutor request error:", error);
     const temporary = isTemporaryGeminiError(error);
