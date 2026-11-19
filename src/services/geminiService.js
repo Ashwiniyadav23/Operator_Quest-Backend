@@ -75,12 +75,12 @@ Avoid these earlier questions: ${JSON.stringify(avoid)}
 Return only JSON matching the response schema.
 `;
   const response = await generateContentWithRetry(ai, {
-    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
     contents: prompt,
     config: {
       responseMimeType: "application/json",
       responseJsonSchema: questionSchema,
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: { thinkingLevel: "minimal" },
       temperature: 1
     }
   });

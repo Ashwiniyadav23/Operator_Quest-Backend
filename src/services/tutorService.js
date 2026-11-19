@@ -95,7 +95,7 @@ export async function answerTutorQuestion(question, studentId) {
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: "v1beta" });
   const context = materials.map(material => `[${material.id}] ${material.content}`).join("\n");
   const response = await generateContentWithRetry(ai, {
-    model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+    model: process.env.GEMINI_MODEL || "gemini-3.5-flash-lite",
     contents: `You are a safe, encouraging guide for students who are learning flowcharts and have not started coding. Explain flowchart symbols, process blocks, decision diamonds, arrows, and everyday logic in plain language. Create exactly 3 new practice questions with answers, using only flowchart scenarios and everyday situations.
 Never provide the answer to an existing quiz or quest question. If the student asks for an existing quiz answer, refuse and offer to explain the relevant operator instead.
 Do not use programming languages, source code, code blocks, coding syntax, or assume the student knows programming. When explaining an operator, describe how it works in a flowchart process block or decision diamond.
@@ -106,7 +106,7 @@ Return only JSON matching the response schema. Do not include unsafe instruction
     config: {
       responseMimeType: "application/json",
       responseJsonSchema: responseSchema,
-      thinkingConfig: { thinkingBudget: 0 },
+      thinkingConfig: { thinkingLevel: "minimal" },
       temperature: 0.4
     }
   });
