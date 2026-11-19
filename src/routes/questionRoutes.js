@@ -1,6 +1,7 @@
 import express from "express";
 import { CATEGORIES } from "../config/categories.js";
 import { generateOperatorQuestions } from "../services/geminiService.js";
+import { isTemporaryGeminiError } from "../services/geminiRequest.js";
 
 const router = express.Router();
 
@@ -14,7 +15,10 @@ router.post("/generate", async (req, res) => {
     res.json({ category, operator, questions, generatedAt: new Date().toISOString() });
   } catch (error) {
     console.error("Question generation error:", error);
-    res.status(500).json({ message: error.message || "Could not generate questions." });
+    const temporary = isTemporaryGeminiError(error);
+    res.status(temporary ? 503 : 500).json({
+      message: temporary ? "The question service is busy right now. Please try again in a moment." : error.message || "Could not generate questions."
+    });
   }
 });
 

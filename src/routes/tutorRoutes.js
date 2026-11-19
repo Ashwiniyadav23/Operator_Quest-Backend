@@ -1,5 +1,6 @@
 import express from "express";
 import { answerTutorQuestion, classifySafety, requestsQuizAnswer, validateInput } from "../services/tutorService.js";
+import { isTemporaryGeminiError } from "../services/geminiRequest.js";
 
 const router = express.Router();
 
@@ -18,7 +19,10 @@ router.post("/ask", async (req, res) => {
     res.json({ explanation: result.response.explanation, questions: result.response.questions, usage: result.usage });
   } catch (error) {
     console.error("Tutor request error:", error);
-    res.status(400).json({ message: error.message || "Could not answer the question." });
+    const temporary = isTemporaryGeminiError(error);
+    res.status(temporary ? 503 : 400).json({
+      message: temporary ? "The flowchart guide is busy right now. Please try again in a moment." : error.message || "Could not answer the question."
+    });
   }
 });
 

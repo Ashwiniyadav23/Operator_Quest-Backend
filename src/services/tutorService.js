@@ -1,5 +1,6 @@
 import { GoogleGenAI } from "@google/genai";
 import { LEARNING_MATERIALS } from "../config/learningMaterials.js";
+import { generateContentWithRetry } from "./geminiRequest.js";
 
 const MAX_INPUT_LENGTH = 1000;
 const responseSchema = {
@@ -93,7 +94,7 @@ export async function answerTutorQuestion(question, studentId) {
   if (!process.env.GEMINI_API_KEY) throw new Error("Gemini API key is missing. Add GEMINI_API_KEY to server/.env.");
   const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY, apiVersion: "v1beta" });
   const context = materials.map(material => `[${material.id}] ${material.content}`).join("\n");
-  const response = await ai.models.generateContent({
+  const response = await generateContentWithRetry(ai, {
     model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
     contents: `You are a safe, encouraging guide for students who are learning flowcharts and have not started coding. Explain flowchart symbols, process blocks, decision diamonds, arrows, and everyday logic in plain language. Create exactly 3 new practice questions with answers, using only flowchart scenarios and everyday situations.
 Never provide the answer to an existing quiz or quest question. If the student asks for an existing quiz answer, refuse and offer to explain the relevant operator instead.
