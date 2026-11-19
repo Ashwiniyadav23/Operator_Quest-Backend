@@ -28,8 +28,11 @@ const blockedPatterns = [
 const quizAnswerPatterns = [
   /\b(correct|right)\s+(answer|option)\b/i,
   /\b(answer|solve|solution)\s+(this|the|my)\b/i,
+  /\b(solve|answer|complete)\s+(question|quiz|quest|problem)\b/i,
   /\bwhat\s+is\s+the\s+(answer|solution)\b/i,
   /\b(give|tell|show)\s+me\s+the\s+answer\b/i,
+  /\b(answer|solution)s?\s+(to|of|for)\s+(these|those|the|my|this|that)?\s*(question|quiz|quest|problem)s?\b/i,
+  /\b(give|tell|show|provide)\b.{0,40}\b(answer|solution)s?\b.{0,40}\b(question|quiz|quest|problem)s?\b/i,
   /\bquiz\s+(answer|solution)\b/i,
   /\b(answer|solution)\b.*\b(question|quiz|quest)\b/i,
   /\b(question|quiz|quest)\b.*\b(answer|solution)\b/i
