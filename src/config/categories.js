@@ -2,26 +2,26 @@ export const CATEGORIES = {
   arithmetic: {
     label: "Arithmetic",
     operators: ["+", "-", "*", "/", "//", "%", "**"],
-    description: "Arithmetic operators: +, -, *, /, //, %, **. Test precedence, brackets, division and remainders."
+    description: "Arithmetic symbols used in flowchart process blocks: +, -, *, /, //, %, **. Use everyday totals, sharing, groups and remainders."
   },
   comparison: {
-    label: "Comparison",
+    label: "Comparisons in decision diamonds",
     operators: [">", "<", ">=", "<=", "==", "!="],
-    description: "Comparison operators: >, <, >=, <=, ==, !=. Questions must test true/false outcomes and choosing the correct comparison."
+    description: "Comparison symbols >, <, >=, <=, ==, != help a flowchart decision diamond choose a Yes or No path. Use familiar values and clear outcomes."
   },
   logical: {
-    label: "Logical",
+    label: "Combining flowchart conditions",
     operators: ["AND", "OR", "NOT"],
-    description: "Logical operators: AND, OR, NOT (Python-style words). Include truth tables, combined conditions and everyday situations."
+    description: "AND, OR and NOT combine Yes or No conditions in a flowchart. Use simple everyday situations and show which path is followed."
   },
   assignment: {
-    label: "Assignment",
+    label: "Values in process blocks",
     operators: ["=", "+=", "-=", "*=", "/=", "//=", "%=", "**="],
-    description: "Assignment operators: =, +=, -=, *=, /=, //=, %=, **=. Give an initial variable value and ask for its value after the operation."
+    description: "These symbols show how a process block stores or changes a number in a named box. Explain the starting number and the updated number using plain language."
   },
   ternary: {
-    label: "Ternary",
+    label: "Decision branches",
     operators: ["if/else"],
-    description: "Python conditional expression: value_if_true if condition else value_if_false. Ask students to evaluate expressions and choose correct structure."
+    description: "A decision diamond sends a flowchart along one path when a condition is Yes and another when it is No. Use a familiar situation and describe the resulting path."
   }
 };

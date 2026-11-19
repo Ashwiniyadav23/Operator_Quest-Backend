@@ -55,18 +55,21 @@ export async function generateOperatorQuestions(category, operator, previousQues
   });
 
   const avoid = previousQuestions.slice(0, 20).map(q => q.slice(0, 180));
-  const prompt = `Create exactly 10 beginner-friendly multiple-choice questions for the ${config.label} operator "${operator}".
-Category requirements: ${config.description}
+  const prompt = `Create exactly 10 beginner-friendly multiple-choice questions about the flowchart symbol "${operator}" for the topic ${config.label}.
+The learner is just beginning flowcharts and has not started coding. Category requirements: ${config.description}
 
 Rules:
-- Every question must directly test only the "${operator}" operator.
-- Use the exact operator "${operator}" in the question or code expression whenever it is meaningful.
+- Every question must directly test only the meaning of the "${operator}" symbol in a flowchart.
+- Explain ideas with everyday situations, process blocks, decision diamonds, Yes/No labels, and named boxes holding values.
+- Include the exact symbol "${operator}" as the label being learned, but explain the scenario in plain language.
+- Do not use programming languages, source code, code blocks, coding syntax, or assume the learner knows how to program.
+- Do not ask learners to evaluate a code expression. Ask what a flowchart block does or which path its arrows follow.
 - Mix 4 Easy, 4 Medium and 2 Hard questions.
 - Use different values and situations.
-- For ternary, use Python conditional-expression syntax and focus on the conditional expression.
+- For if/else, describe the two branches from a decision diamond; do not use a one-line expression.
 - Each question must have exactly four distinct options.
 - answerIndex must be zero-based and point to exactly one correct option.
-- Explanations must briefly teach the concept. Ensure answers are correct and unambiguous.
+- Explanations must briefly teach the flowchart concept in beginner-friendly language. Ensure answers are correct and unambiguous.
 Avoid these earlier questions: ${JSON.stringify(avoid)}
 Return only JSON matching the response schema.
 `;

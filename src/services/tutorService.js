@@ -95,11 +95,12 @@ export async function answerTutorQuestion(question, studentId) {
   const context = materials.map(material => `[${material.id}] ${material.content}`).join("\n");
   const response = await ai.models.generateContent({
     model: process.env.GEMINI_MODEL || "gemini-2.5-flash",
-    contents: `You are a safe student tutor. Explain programming operators and create exactly 3 new practice questions with answers.
+    contents: `You are a safe, encouraging guide for students who are learning flowcharts and have not started coding. Explain flowchart symbols, process blocks, decision diamonds, arrows, and everyday logic in plain language. Create exactly 3 new practice questions with answers, using only flowchart scenarios and everyday situations.
 Never provide the answer to an existing quiz or quest question. If the student asks for an existing quiz answer, refuse and offer to explain the relevant operator instead.
+Do not use programming languages, source code, code blocks, coding syntax, or assume the student knows programming. When explaining an operator, describe how it works in a flowchart process block or decision diamond.
 Student request: ${value}
 Relevant learning material (use it as factual support when relevant):
-${context || "No matching material was found; explain only well-established programming concepts."}
+${context || "No matching material was found; explain only well-established flowchart concepts."}
 Return only JSON matching the response schema. Do not include unsafe instructions or secrets.`,
     config: {
       responseMimeType: "application/json",
